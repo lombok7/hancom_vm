@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>한글과컴퓨터 실기전형 - 자동 판매기 by 강대영(클라우드_경력)</title>
+		
+		<script type="text/javascript" src="./js/jquery-1.10.2.js"></script>		
+        <script type="text/javascript">
+        	onethousand_count = 3;	// 1000원 지폐는 3장 까지 투입 가능.
+        	fivehundred_count = 10;		// 500원 동전은 10개 까지 투입 가능.
+        	
+        	// 금액 투입 함수.
+			function insertAmount(amount) {
+				
+				// 1000원, 500원의 투입 가능 개수를 초과하면 투입을 막습니다.
+				switch(amount) {
+					
+					case 1000:
+						onethousand_count--;
+						if (onethousand_count < 0) return;
+						break;
+					case 500:
+						fivehundred_count--;
+						if (fivehundred_count < 0) return;
+						break;
+				}
+				
+				// 현재 투입 금액을 가져와 int 형으로 형변환 합니다.
+				var currentAmount = parseInt($('#amount').val());
+				
+				// 현재 투입 금액 + 투입 금액
+				currentAmount += amount;
+				
+				// 계산 결과를 텍스트 상자에 반영 합니다.
+				$('#amount').val(currentAmount);			
+			}
+		</script>
+	</head>
+	<body>
+    	<div id="wrap" style="background:#6CF; width:750px; overflow:hidden;">
+            <div id="product_wrap" style="background:yellow; float:left;">
+                <table border="1" width="500" height="600">
+                    <tr>
+                        <td>1</td>
+                        <td>2</td>
+                        <td>3</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>5</td>
+                        <td>6</td>
+                    </tr>
+                    <tr>
+                        <td>7</td>
+                        <td>8</td>
+                        <td>9</td>
+                    </tr>                        
+                </table>                
+            </div>
+            <div id="calc_wrap" style="width:250px; height:200px; background:red; float:left;">금액영역
+            	<ul>
+                	<li>투입 금액 <input type="text" id="amount" name="amount" value="0" style="text-align:right;" readonly />원</li>
+                    <li>
+                    	<input type="button" id="fifty" name="fifty" value="50원" onclick="javascript:insertAmount(50);" />
+                        <input type="button" id="onehundred" name="onehundred" value="100원" onclick="javascript:insertAmount(100);">
+                    </li>
+                    <li>
+                  		<input type="button" id="fivehundred" name="fivehundred" value="500원" onclick="javascript:insertAmount(500);" />
+                        <input type="button" id="onethousand" name="onethousand" value="1000원" onclick="javascript:insertAmount(1000);" />
+    				</li>                
+                </ul>
+            </div>            
+            <div id="message_wrap" style="width:250px; height:200px; background:green; float:left;">메세지영역</div>
+            <div id="profile_wrap" style="width:250px; height:200px; background:blue; float:left;">관리영역</div>
+		</div>
+	</body>
+</html>
