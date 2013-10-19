@@ -9,6 +9,8 @@
         	onethousand_count = 3;	// 1000원 지폐는 3장 까지 투입 가능.
         	fivehundred_count = 10;		// 500원 동전은 10개 까지 투입 가능.
         	
+        	// $('#amount').val(0);
+        	
         	// 금액 투입 함수.
 			function insertAmount(amount) {
 				
@@ -32,18 +34,81 @@
 				currentAmount += amount;
 				
 				// 계산 결과를 텍스트 상자에 반영 합니다.
-				$('#amount').val(currentAmount);			
+				$("#amount").val(currentAmount);			
 			}
+			
+			function Beverage(name, price, image) {
+				this.name = name;
+				this.price = price;
+				this.image = image;
+				this.stock = 10;
+			}
+			
+			// DOM 트리가 생성된 후 객체 값을 반영합니다.
+			$(document).ready(function() {
+				/*
+				s = new Beverage("비타민워터", 600, "vitaminwater.jpg");
+								$("#beverageImage").attr("src","./images/" + s.image);
+								$("#beverageName").text(s.name);
+								$("#beveragePrice").text(s.price);
+								$("#beverageStock").text(s.stock);*/
+				
+				
+				var beverageArr = new Array();
+				
+				beverageArr[0] = new Beverage("비타민워터", 600, "vitaminwater.jpg");
+				beverageArr[1] = new Beverage("조지아", 900, "georgia.jpg");
+				beverageArr[2] = new Beverage("코카콜라", 300, "cocacola.jpg");
+				
+				
+				$("img[name=beverageImage\\[\\]]").eq(0).attr("src","./images/" + beverageArr[0].image);
+				$("span[name=beverageName\\[\\]]").eq(0).text(beverageArr[0].name);
+				$("span[name=beverageStock\\[\\]]").eq(0).text(beverageArr[0].stock);
+				$("span[name=beveragePrice\\[\\]]").eq(0).text(beverageArr[0].price);
+				
+				// 배열로 img, span 값 셋팅하기.
+				for (var i in beverageArr) {
+					$("img[name=beverageImage\\[\\]]").eq(i).attr("src","./images/" + beverageArr[i].image);
+					$("span[name=beverageName\\[\\]]").eq(i).text(beverageArr[i].name);
+					$("span[name=beverageStock\\[\\]]").eq(i).text(beverageArr[i].stock);
+					$("span[name=beveragePrice\\[\\]]").eq(i).text(beverageArr[i].price);
+				}
+				
+				
+				//alert(s.name);
+				//alert($("#beverageName").html());
+				//alert($("#beverageName").text());
+				//alert(document.getElementById("beverageName"));
+			});
+			
+			
+			
+			
 		</script>
 	</head>
 	<body>
-    	<div id="wrap" style="background:#6CF; width:750px; overflow:hidden;">
+    	<div id="wrap" style="background:#6CF; width:850px; overflow:hidden;">
             <div id="product_wrap" style="background:yellow; float:left;">
-                <table border="1" width="500" height="600">
+                <table border="1" width="600" height="750">
                     <tr>
-                        <td>1</td>
-                        <td>2</td>
-                        <td>3</td>
+                        <td width="200" height="250" align="center">
+                        	<img name="beverageImage[]" /><br />
+                        	<span name="beverageName[]">&nbsp;</span>(<span name="beverageStock[]">&nbsp;</span>개)<br />
+                        	<span name="beveragePrice[]">&nbsp;</span>원<br />
+                        	<input type="button" name="select[]" value="선택" />
+                        </td>
+                        <td width="200" height="250" align="center">
+                        	<img name="beverageImage[]" /><br />
+                        	<span name="beverageName[]">&nbsp;</span>(<span name="beverageStock[]">&nbsp;</span>개)<br />
+                        	<span name="beveragePrice[]">&nbsp;</span>원<br />
+                        	<input type="button" name="select[]" value="선택" />
+                        </td>
+                       <td width="200" height="250" align="center">
+                        	<img name="beverageImage[]" /><br />
+                        	<span name="beverageName[]">&nbsp;</span>(<span name="beverageStock[]">&nbsp;</span>개)<br />
+                        	<span name="beveragePrice[]">&nbsp;</span>원<br />
+                        	<input type="button" name="select[]" value="선택" />
+                        </td>
                     </tr>
                     <tr>
                         <td>4</td>
