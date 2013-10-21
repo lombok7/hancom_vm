@@ -1,0 +1,82 @@
+@charset "utf-8";
+/* CSS Document */
+
+body {
+	font-size: 13px;
+}
+
+input[type=button] {
+	width: 60px;
+}
+
+div {
+	overflow: hidden;
+}
+
+/* 큰 영역 부터 설정 합니다. */
+#main_wrap {
+	width: 860px;	
+}
+
+#beverage_wrap {
+	width: 610px;
+	float: left;
+}
+
+#beverage_wrap input[type=button], #beverage_wrap img {
+	margin: 3px;
+}
+
+#manage_wrap {
+	width: 250px;
+	float: left;	
+}
+
+#manage_wrap div {
+	height: 200px;
+	border-width: 1px;
+	border-style: dotted;
+}
+
+#calc_wrap {
+	border-color: red;
+}
+
+#calc_wrap table {
+	text-align: center; 
+	width: 245px;
+	margin-top: 30px;
+}
+
+#calc_wrap input[type=button] {
+	margin: 5px;
+}
+
+#message_wrap {
+	text-align: center;
+	line-height: 200px;
+	border-color: green;
+}
+
+#message_wrap span {
+	font-weight: bold;	
+}
+
+#profile_wrap {
+	border-color: blue;
+}
+
+#profile_wrap table {
+	width: 245px;
+	margin-top: 20px;
+	padding: 0px;	
+}
+
+#profile_wrap th {
+	height: 50px;
+	background-color: #66CCFF; 
+}
+
+#profile_wrap td {
+	background-color: #66FFCC; 
+}

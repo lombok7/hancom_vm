@@ -2,87 +2,108 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
-		<title>한글과컴퓨터 실기전형 - 자동 판매기 by 강대영(클라우드_경력)</title>
+       	<title>한글과컴퓨터 실기전형 - 자동 판매기 by 강대영(클라우드_경력)</title>
 		
-		<script type="text/javascript" src="./js/jquery-1.10.2.js"></script>		
+        <link rel="stylesheet" href="css/hancom_vm.css">
+		<script type="text/javascript" src="./js/jquery-1.10.2.js"></script>	
+        <script type="text/javascript" src="./js/hancom_vm.js"></script>	
         <script type="text/javascript">
-        	// DOM 트리가 생성된 후 객체 값을 반영합니다.
+			// DOM 트리가 생성된 후 객체 값을 반영합니다.
             $(document).ready(function() {
+				
+				// 투입 금액을 초기화 합니다.
+				$("#amount").val(0);				
+				
+				// 음료 정보를 배열에 저장합니다.
                 beverageArr = new Array();
                 
-                beverageArr[0] = new Beverage("비타민워터", 600, "vitaminwater.jpg");
-                beverageArr[1] = new Beverage("조지아", 900, "georgia.jpg");
-                beverageArr[2] = new Beverage("코카콜라", 300, "cocacola.jpg");
+                beverageArr[0] = new Beverage("비타민워터", 600, "vitaminwater.png");
+                beverageArr[1] = new Beverage("조지아", 900, "georgia.png");
+                beverageArr[2] = new Beverage("코카콜라", 300, "cocacola.png");
+                beverageArr[3] = new Beverage("환타", 400, "fanta.png");
+                beverageArr[4] = new Beverage("DK", 500, "dk.png");
+                beverageArr[5] = new Beverage("파워에이드", 700, "powerade.png");
+                beverageArr[6] = new Beverage("HOT6", 1000, "hot6.png");
+                beverageArr[7] = new Beverage("헛개컨디션파워", 2500, "condition.png");
+                beverageArr[8] = new Beverage("스마트워터", 1100, "smartwater.png");
                 
-                // 랜덤으로 진열 순서 정하기.
-                var seq = {};
-                var flag = [0,0,0];
-                var count = 0;
-                do {                    
-                    // 0 ~ 2 사이의 난수를 발생합니다.
-                    var tempRandom = Math.floor(Math.random()*3);
-                    
-                    if (flag[tempRandom] == 0) {
-                        // alert(tempRandom);
-                        seq[count] = tempRandom;
-                        flag[tempRandom] = 1;  
-                        count++;                                          
-                    }
-                    
-                } while (count < 3);                
+                // 진열 순서를 정하기 위해 난수를 발생시킵니다.
+                var seq = getSequence(9);
+                               
+                // img, span 값 셋팅하기.
+                var makeDiv = "";
                 
-                // 배열로 img, span 값 셋팅하기.
-                for (var i in beverageArr) {
+                // i는 순서대로 (0이 첫 번째 칸)0 ~ 8칸을 나타내며, seq[i]는 beverageArr 배열에 몇 번째 요소를 보여줄지 저장하고 있습니다.
+				// i=0 인 경우 0 번째 칸에 보여질 beverageArr 배열 요소의 idx(일련 번호)는 seq[0]에 있습니다.  
+				for (var i in beverageArr) {
+                    idx = seq[i];
                     
-                    beverageArr[i].didx = seq[i];
-                    
-                    $("img[name=beverageImage\\[\\]]").eq(seq[i]).attr("src","./images/" + beverageArr[i].image);
-                    $("span[name=beverageName\\[\\]]").eq(seq[i]).text(beverageArr[i].name);
-                    $("span[name=beverageStock\\[\\]]").eq(seq[i]).text(beverageArr[i].stock);
-                    $("span[name=beveragePrice\\[\\]]").eq(seq[i]).text(beverageArr[i].price);
-                    $("input[name=select\\[\\]]").eq(seq[i]).attr("onclick","javascript:buyBeverage(" + beverageArr[i].idx + ");");
+                    beverageArr[idx].didx = i;	// beverage 객체에 추가 속성으로, 몇 번 째 칸에 보여지는지 저장합니다.
+                                                            
+                    makeDiv += "<div name='item[]' style='width:200px; height:200px; float:left; text-align:center; border:1px dotted;'>";
+                    makeDiv += "<img id='beverageImage' src='./images/" + beverageArr[idx].image + "'  alt='" + beverageArr[idx].name + "' />";
+                    makeDiv += "<br />";
+                    makeDiv += "<span id='beverageName'>" + beverageArr[idx].name + "</span>";
+                    makeDiv += "(<span id='beverageStock'>" + beverageArr[idx].stock + "</span>개)";
+                    makeDiv += "<br />";
+                    makeDiv += "<span id='beveragePrice'>" + beverageArr[idx].price + "</span>원";
+                    makeDiv += "<br />";
+                    makeDiv += "<input type='button' id='select' value='선택' onclick='javascript:buyBeverage(" + beverageArr[idx].idx + ");' />";
+                    makeDiv += "</div>";                                        
                 }
+                
+                $("#beverage_wrap").html(makeDiv);
             });
-            
+			
+			// 전역 변수를 선언 합니다.
+			var onethousand_count = 3;		// 1000원 지폐는 3장 까지 투입 가능.
+        	var fivehundred_count = 10;		// 500원 동전은 10개 까지 투입 가능.
             var idx = 0;
             
-            // Beverage 객체 생성.
+            // Beverage 객체를 생성합니다.
             function Beverage(name, price, image) {
-                this.idx = idx++;
-                this.name = name;
-                this.price = price;
-                this.image = image;
-                this.stock = 10;
+                this.idx = idx++;		// 일련 번호.
+                this.name = name;		// 이름.
+                this.price = price;		// 가격.
+                this.image = image;		// 이미지 이름.
+                this.stock = 10;		// 재고는 10개로 동일.
             }
             
+			// 연산은 idx(일련 번호)를 넘겨 받아, 해당 객체의 내용을 변경한 후, 반영합니다.
             // '선택' 버튼을 클릭하면, 호출되는 함수 입니다.
-            function buyBeverage(i) {
+            function buyBeverage(idx) {
                 
-                // 1. 투입 금액이 선택한 음료수를 구입 하기에 충분한지 확인 합니다.
+                // 1. 투입 금액이 선택한 음료를 구입 하기에 충분한지 확인 합니다.
                 amount = $("#amount").val();
                 
-                if (beverageArr[i].price > amount) {
-                    alert('투입 금액이 부족합니다.');
+                if (beverageArr[idx].price > amount) {
+                    showMessage("투입 금액이 부족합니다.");
                     return;                    
                 }                
                 
-                // 2. 재고가 있는지 확인한다.
-                if (beverageArr[i].stock > 0) {
+                // 2. 재고가 있는지 확인합니다.
+                if (beverageArr[idx].stock > 0) {
                     
-                    // 3. 재고가 있으면 해당 음료의 재고를 하나 줄인다.
-                    beverageArr[i].stock--;
+                    // 3. 재고가 있으면 해당 음료의 재고를 하나 줄이고, 메세지를 보여 줍니다.
+                    beverageArr[idx].stock--;
+					showMessage(beverageArr[idx].name + " (가)이 나왔습니다.");
+					
+					// 3-1. 재고가 0이 되면 '선택' 버튼을 비활성화 합니다.
+					if (beverageArr[idx].stock == 0) {
+						// 현재 객체가 표시되고 있는 div 안 버튼에 disabled 속성을 추가합니다.
+						// 비활성화된 버튼은 이벤트를 받을 수 없습니다.
+						$("div[name=item\\[\\]]").eq(beverageArr[idx].didx).children("#select").attr("disabled","");
+					}
                 }
                 
-                // 4. 변경된 재고를 반영한다.
-                $("span[name=beverageStock\\[\\]]").eq(beverageArr[i].didx).text(beverageArr[i].stock);  
+                // 4. 변경된 재고를 반영 합니다.
+				// 현재 객체가 표시되고 있는 div 안 버튼에 disabled 속성을 추가합니다.
+                $("div[name=item\\[\\]]").eq(beverageArr[idx].didx).children("#beverageStock").text(beverageArr[idx].stock);
                 
-                // 5. 투입 금액을 음료수 값 만큼 줄인다.
-                amount -= beverageArr[i].price;
+                // 5. 투입 금액에서 음료 값을 빼고, 반영합니다.
+                amount -= beverageArr[idx].price;
                 $("#amount").val(amount);             
-            }
-        	
-        	onethousand_count = 3;	// 1000원 지폐는 3장 까지 투입 가능.
-        	fivehundred_count = 10;		// 500원 동전은 10개 까지 투입 가능.
+            }        	
         	        	
         	// 금액 투입 함수.
 			function insertAmount(amount) {
@@ -92,11 +113,20 @@
 					
 					case 1000:
 						onethousand_count--;
-						if (onethousand_count < 0) return;
+						
+						if (onethousand_count < 0)  {
+							showMessage("1000원은 3장까지 투입 가능합니다.");
+							return;
+						}
+						
 						break;
 					case 500:
 						fivehundred_count--;
-						if (fivehundred_count < 0) return;
+						
+						if (fivehundred_count < 0) {
+							showMessage("500원은 10개까지 투입 가능합니다.");							
+							return;
+						}
 						break;
 				}
 				
@@ -110,66 +140,65 @@
 				$("#amount").val(currentAmount);			
 			}
 			
-			
-			
-			
-			
-			
-			
-			
+			// 메세지를 넘겨 받아, 보여 주는 함수 입니다.
+			function showMessage(message) {
+				$("#message").text(message);
+			}
 		</script>
 	</head>
 	<body>
-    	<div id="wrap" style="background:#6CF; width:850px; overflow:hidden;">
-            <div id="product_wrap" style="background:yellow; float:left;">
-                <table border="1" width="600" height="750">
-                    <tr>
-                        <td width="200" height="250" align="center">
-                        	<img name="beverageImage[]" /><br />
-                        	<span name="beverageName[]">&nbsp;</span>(<span name="beverageStock[]">&nbsp;</span>개)<br />
-                        	<span name="beveragePrice[]">&nbsp;</span>원<br />
-                        	<input type="button" name="select[]" value="선택" />
-                        </td>
-                        <td width="200" height="250" align="center">
-                        	<img name="beverageImage[]" /><br />
-                        	<span name="beverageName[]">&nbsp;</span>(<span name="beverageStock[]">&nbsp;</span>개)<br />
-                        	<span name="beveragePrice[]">&nbsp;</span>원<br />
-                        	<input type="button" name="select[]" value="선택" />
-                        </td>
-                       <td width="200" height="250" align="center">
-                        	<img name="beverageImage[]" /><br />
-                        	<span name="beverageName[]">&nbsp;</span>(<span name="beverageStock[]">&nbsp;</span>개)<br />
-                        	<span name="beveragePrice[]">&nbsp;</span>원<br />
-                        	<input type="button" name="select[]" value="선택" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>4</td>
-                        <td>5</td>
-                        <td>6</td>
-                    </tr>
-                    <tr>
-                        <td>7</td>
-                        <td>8</td>
-                        <td>9</td>
-                    </tr>                        
-                </table>                
+    	<div id="main_wrap">
+            <div id="beverage_wrap"></div>
+            <div id="manage_wrap">
+                <div id="calc_wrap">
+                	<table>
+                    	<tr>
+                        	<td>
+                            	투입 금액 <input type="text" id="amount" name="amount" value="0" size="10" style="text-align:right;" readonly />원
+                            </td>
+                        </tr>
+						<tr>
+                        	<td>
+                            	<input type="button" id="fifty" name="fifty" value="50원" size="100" onclick="javascript:insertAmount(50);"  />
+                    			<input type="button" id="onehundred" name="onehundred" value="100원" onclick="javascript:insertAmount(100);" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                   		    	<input type="button" id="fivehundred" name="fivehundred" value="500원"  onclick="javascript:insertAmount(500);"   />
+                    			<input type="button" id="onethousand" name="onethousand" value="1000원" onclick="javascript:insertAmount(1000);" />
+                    		</td>
+                        </tr>
+                        <tr>
+                        	<td>
+                            	<input type="button" id="refund" name="refund" value="반환" onclick="javascript:refundAmount();"  />
+                    			<input type="button" id="donate" name="donate" value="기부" onclick="javascript:donateAmount();"  />
+                			</td>
+                        </tr>
+                	</table>
+                </div>            
+                <div id="message_wrap">
+                	<span id="message">메세지가 표시됩니다.</span>
+                </div>
+                <div id="profile_wrap">
+                 	<table>
+                    	<tr>                           	
+                        	<td rowspan="2"><img src="./images/hancom_dy.jpg" alt="강대영" /></td>
+       	            		<th>이름</th>
+                            <td >강대영</td>
+                        </tr>
+                        <tr>
+                        	<th>지원분야</th>
+                            <td>클라우드_경력</td>
+                    	</tr>
+                        <tr>
+                        	<td colspan="3" align="right">
+                            	<input type="button" id="manager" name="manager" value="관리자" />
+                            </td>
+                     	</tr>
+                	</table>
+            	</div>
             </div>
-            <div id="calc_wrap" style="width:250px; height:200px; background:red; float:left;">금액영역
-            	<ul>
-                	<li>투입 금액 <input type="text" id="amount" name="amount" value="0" style="text-align:right;" readonly />원</li>
-                    <li>
-                    	<input type="button" id="fifty" name="fifty" value="50원" onclick="javascript:insertAmount(50);" />
-                        <input type="button" id="onehundred" name="onehundred" value="100원" onclick="javascript:insertAmount(100);">
-                    </li>
-                    <li>
-                  		<input type="button" id="fivehundred" name="fivehundred" value="500원" onclick="javascript:insertAmount(500);" />
-                        <input type="button" id="onethousand" name="onethousand" value="1000원" onclick="javascript:insertAmount(1000);" />
-    				</li>                
-                </ul>
-            </div>            
-            <div id="message_wrap" style="width:250px; height:200px; background:green; float:left;">메세지영역</div>
-            <div id="profile_wrap" style="width:250px; height:200px; background:blue; float:left;">관리영역</div>
-		</div>
+        </div>
 	</body>
 </html>
