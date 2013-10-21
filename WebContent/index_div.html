@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>한글과컴퓨터 실기전형 - 자동 판매기 by 강대영(클라우드_경력)</title>
+		
+		<script type="text/javascript" src="./js/jquery-1.10.2.js"></script>		
+        <script type="text/javascript">
+        	// DOM 트리가 생성된 후 객체 값을 반영합니다.
+            $(document).ready(function() {
+                beverageArr = new Array();
+                
+                beverageArr[0] = new Beverage("비타민워터", 600, "vitaminwater.jpg");
+                beverageArr[1] = new Beverage("조지아", 900, "georgia.jpg");
+                beverageArr[2] = new Beverage("코카콜라", 300, "cocacola.jpg");
+                beverageArr[3] = new Beverage("환타", 400, "fanta.jpg");
+                beverageArr[4] = new Beverage("DK", 500, "dk.jpg");
+                beverageArr[5] = new Beverage("파워에이드", 700, "powerade.jpg");
+                beverageArr[6] = new Beverage("HOT6", 1000, "hot6.jpg");
+                beverageArr[7] = new Beverage("헛개컨디션파워", 2500, "condition.jpg");
+                beverageArr[8] = new Beverage("스마트워터", 1100, "smartwater.jpg");
+                
+                // 랜덤으로 진열 순서 정하기.
+                var seq = {};
+                var flag = [0,0,0,0,0,0,0,0,0];
+                var count = 0;
+                do {                    
+                    // 0 ~ 8 사이의 난수를 발생합니다.
+                    var tempRandom = Math.floor(Math.random()*9);
+                    
+                    if (flag[tempRandom] == 0) {
+                        seq[count] = tempRandom;
+                        flag[tempRandom] = 1;  
+                        count++;                                          
+                    }
+                    
+                } while (count < 9);                
+                
+                // img, span 값 셋팅하기.
+                var makeDiv = "";
+                
+                // i는 0 ~ 8칸 차례 순서로...
+                // 진열 순서는 seq[]에 저장된 순서 입니다.
+                for (var i in beverageArr) {
+                    didx = seq[i];
+                    
+                    beverageArr[didx].didx = i;
+                                                            
+                    makeDiv += "<div name='item[]' style='width:200px; height:200px; float:left; overflow:hidden; text-align:center; border:1px;'>";
+                    makeDiv += "<img id='beverageImage' src='./images/" + beverageArr[didx].image + "'>";
+                    makeDiv += "<br />";
+                    makeDiv += "<span id='beverageName'>" + beverageArr[didx].name + "</span>";
+                    makeDiv += "(<span id='beverageStock'>" + beverageArr[didx].stock + "</span>개)";
+                    makeDiv += "<br />";
+                    makeDiv += "<span id='beveragePrice'>" + beverageArr[didx].price + "</span>원";
+                    makeDiv += "<br />";
+                    makeDiv += "<input type='button' id='select' value='선택' onclick='javascript:buyBeverage(" + beverageArr[didx].idx + ")' />";
+                    makeDiv += "</div>";   
+                    
+                                       
+                }
+                
+                $("#beverage_wrap").html(makeDiv);
+            });
+            
+            var idx = 0;
+            
+            // Beverage 객체 생성.
+            function Beverage(name, price, image) {
+                this.idx = idx++;
+                this.name = name;
+                this.price = price;
+                this.image = image;
+                this.stock = 10;
+            }
+            
+            // '선택' 버튼을 클릭하면, 호출되는 함수 입니다.
+            function buyBeverage(idx) {
+                
+                // 1. 투입 금액이 선택한 음료수를 구입 하기에 충분한지 확인 합니다.
+                amount = $("#amount").val();
+                
+                if (beverageArr[idx].price > amount) {
+                    alert('투입 금액이 부족합니다.');
+                    return;                    
+                }                
+                
+                // 2. 재고가 있는지 확인한다.
+                if (beverageArr[idx].stock > 0) {
+                    
+                    // 3. 재고가 있으면 해당 음료의 재고를 하나 줄인다.
+                    beverageArr[idx].stock--;
+                }
+                
+                // 4. 변경된 재고를 반영한다.
+                $("div[name=item\\[\\]]").eq(beverageArr[idx].didx).children("#beverageStock").text(beverageArr[idx].stock);
+                
+                // 5. 투입 금액을 음료수 값 만큼 줄인다.
+                amount -= beverageArr[idx].price;
+                $("#amount").val(amount);             
+            }
+        	
+        	onethousand_count = 3;	// 1000원 지폐는 3장 까지 투입 가능.
+        	fivehundred_count = 10;		// 500원 동전은 10개 까지 투입 가능.
+        	        	
+        	// 금액 투입 함수.
+			function insertAmount(amount) {
+				
+				// 1000원, 500원의 투입 가능 개수를 초과하면 투입을 막습니다.
+				switch(amount) {
+					
+					case 1000:
+						onethousand_count--;
+						if (onethousand_count < 0) return;
+						break;
+					case 500:
+						fivehundred_count--;
+						if (fivehundred_count < 0) return;
+						break;
+				}
+				
+				// 현재 투입 금액을 가져와 int 형으로 형변환 합니다.
+				var currentAmount = parseInt($('#amount').val());
+				
+				// 현재 투입 금액 + 투입 금액
+				currentAmount += amount;
+				
+				// 계산 결과를 텍스트 상자에 반영 합니다.
+				$("#amount").val(currentAmount);			
+			}			
+		</script>
+	</head>
+	<body>
+    	<div id="main_wrap" style="width:850px; overflow:hidden;">
+            <div id="beverage_wrap" style="float:left; overflow:hidden; width:600px;">
+                
+            </div>
+            <div id="manage_wrap" style="float:left; overflow:hidden; width:250px;">
+                <div id="calc_wrap" style="height:200px; background:red;">금액영역
+                    <ul>
+                    	<li>투입 금액 <input type="text" id="amount" name="amount" value="0" style="text-align:right;" readonly />원</li>
+                        <li>
+                        	<input type="button" id="fifty" name="fifty" value="50원" onclick="javascript:insertAmount(50);" />
+                            <input type="button" id="onehundred" name="onehundred" value="100원" onclick="javascript:insertAmount(100);">
+                        </li>
+                        <li>
+                      		<input type="button" id="fivehundred" name="fivehundred" value="500원" onclick="javascript:insertAmount(500);" />
+                            <input type="button" id="onethousand" name="onethousand" value="1000원" onclick="javascript:insertAmount(1000);" />
+        				</li>                
+                    </ul>
+                </div>            
+                <div id="message_wrap" style="height:200px; background:green;">메세지영역</div>
+                <div id="profile_wrap" style="height:200px; background:blue;">관리영역</div>
+            </div>
+        </div>
+	</body>
+</html>
