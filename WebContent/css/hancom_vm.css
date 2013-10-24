@@ -1,82 +1,40 @@
 @charset "utf-8";
 /* CSS Document */
+body{font-size:13px}
 
-body {
-	font-size: 13px;
-}
+input[type=button]{width:60px}
 
-input[type=button] {
-	width: 60px;
-}
-
-div {
-	overflow: hidden;
-}
+div{overflow:hidden}
 
 /* 큰 영역 부터 설정 합니다. */
-#main_wrap {
-	width: 860px;	
-}
+#stock_wrap{position:absolute;display:none;background:#FFC}
 
-#beverage_wrap {
-	width: 610px;
-	float: left;
-}
+#stock_wrap table {padding:3px}
 
-#beverage_wrap input[type=button], #beverage_wrap img {
-	margin: 3px;
-}
+#main_wrap{width:860px}
 
-#manage_wrap {
-	width: 250px;
-	float: left;	
-}
+#beverage_wrap{float:left;width:610px}
 
-#manage_wrap div {
-	height: 200px;
-	border-width: 1px;
-	border-style: dotted;
-}
+#beverage_wrap input[type=button],#beverage_wrap img{margin:3px}
 
-#calc_wrap {
-	border-color: red;
-}
+#manage_wrap{float:left;width:250px}
 
-#calc_wrap table {
-	text-align: center; 
-	width: 245px;
-	margin-top: 30px;
-}
+#manage_wrap div{height:200px;border-width:1px;border-style:dotted}
 
-#calc_wrap input[type=button] {
-	margin: 5px;
-}
+#calc_wrap{border-color:red}
 
-#message_wrap {
-	text-align: center;
-	line-height: 200px;
-	border-color: green;
-}
+#calc_wrap table{width:245px;margin-top:30px;text-align:center}
 
-#message_wrap span {
-	font-weight: bold;	
-}
+#calc_wrap input[type=button]{margin:5px}
 
-#profile_wrap {
-	border-color: blue;
-}
+#message_wrap{border-color:green;line-height:200px;text-align:center}
 
-#profile_wrap table {
-	width: 245px;
-	margin-top: 20px;
-	padding: 0px;	
-}
+#message_wrap span{font-weight:bold}
 
-#profile_wrap th {
-	height: 50px;
-	background-color: #66CCFF; 
-}
+#profile_wrap{border-color:blue}
 
-#profile_wrap td {
-	background-color: #66FFCC; 
-}
+#profile_wrap table{width:245px;margin-top:20px;padding:0}
+
+#profile_wrap th{height:50px;background-color:#6CF}
+
+#profile_wrap td{background-color:#6FC}

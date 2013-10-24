@@ -2,6 +2,8 @@
 <html>
 	<head>
 		<meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        
        	<title>한글과컴퓨터 실기전형 - 자동 판매기 by 강대영(클라우드_경력)</title>
 		
         <link rel="stylesheet" href="css/hancom_vm.css">
@@ -41,32 +43,36 @@
                     beverageArr[idx].didx = i;	// beverage 객체에 추가 속성으로, 몇 번 째 칸에 보여지는지 저장합니다.
                                                             
                     makeDiv += "<div name='item[]' style='width:200px; height:200px; float:left; text-align:center; border:1px dotted;'>";
-                    makeDiv += "<img id='beverageImage' src='./images/" + beverageArr[idx].image + "'  alt='" + beverageArr[idx].name + "' />";
+					makeDiv += "<img id='beverageImage' src='./images/" + beverageArr[idx].image + "'  alt='" + beverageArr[idx].name + "' />";
                     makeDiv += "<br />";
                     makeDiv += "<span id='beverageName'>" + beverageArr[idx].name + "</span>";
-                    makeDiv += "(<span id='beverageStock'>" + beverageArr[idx].stock + "</span>개)";
+                    makeDiv += "(<span id='beverageStock'>" + beverageArr[idx].stock + "</span>개 / <span id='beverageMirinae'>" + beverageArr[idx].mirinae + "</span>개)";
                     makeDiv += "<br />";
                     makeDiv += "<span id='beveragePrice'>" + beverageArr[idx].price + "</span>원";
                     makeDiv += "<br />";
                     makeDiv += "<input type='button' id='select' value='선택' onclick='javascript:buyBeverage(" + beverageArr[idx].idx + ");' />";
+					makeDiv += "<input type='button' id='mirinae' value='미리내' onclick='javascript:mirinaeBeverage(" + beverageArr[idx].idx + ");' />";
+					makeDiv += "<input type='button' id='take' value='받기' onclick='javascript:takeBeverage(" + beverageArr[idx].idx + ");' disabled />";
                     makeDiv += "</div>";                                        
                 }
                 
                 $("#beverage_wrap").html(makeDiv);
             });
-			
+									
 			// 전역 변수를 선언 합니다.
 			var onethousand_count = 3;		// 1000원 지폐는 3장 까지 투입 가능.
         	var fivehundred_count = 10;		// 500원 동전은 10개 까지 투입 가능.
             var idx = 0;
-            
-            // Beverage 객체를 생성합니다.
+			
+		    // Beverage 객체를 생성합니다.
             function Beverage(name, price, image) {
                 this.idx = idx++;		// 일련 번호.
                 this.name = name;		// 이름.
                 this.price = price;		// 가격.
                 this.image = image;		// 이미지 이름.
                 this.stock = 10;		// 재고는 10개로 동일.
+				this.mirinae = 0;		// 추가기능 : 미리내 준 갯수를 기억합니다.
+				
             }
             
 			// 연산은 idx(일련 번호)를 넘겨 받아, 해당 객체의 내용을 변경한 후, 반영합니다.
@@ -84,7 +90,7 @@
                 // 2. 재고가 있는지 확인합니다.
                 if (beverageArr[idx].stock > 0) {
                     
-                    // 3. 재고가 있으면 해당 음료의 재고를 하나 줄이고, 메세지를 보여 줍니다.
+                    // 3. 재고가 있으면 해당 음료의 재고를 하나 줄이고, 메시지를 보여 줍니다.
                     beverageArr[idx].stock--;
 					showMessage(beverageArr[idx].name + " (가)이 나왔습니다.");
 					
@@ -93,19 +99,153 @@
 						// 현재 객체가 표시되고 있는 div 안 버튼에 disabled 속성을 추가합니다.
 						// 비활성화된 버튼은 이벤트를 받을 수 없습니다.
 						$("div[name=item\\[\\]]").eq(beverageArr[idx].didx).children("#select").attr("disabled","");
+						
+						// 추가기능 : 재고가 없으면, 미리 값을 지불하였어도, 받을 수 없으므로 [받기] 버튼도 비활성화합니다.
+						$("div[name=item\\[\\]]").eq(beverageArr[idx].didx).children("#take").attr("disabled","");
 					}
                 }
                 
-                // 4. 변경된 재고를 반영 합니다.
-				// 현재 객체가 표시되고 있는 div 안 버튼에 disabled 속성을 추가합니다.
+                // 4. 현재 객체가 표시되고 있는 div 안 span에 변경된 재고를 반영합니다.
                 $("div[name=item\\[\\]]").eq(beverageArr[idx].didx).children("#beverageStock").text(beverageArr[idx].stock);
                 
                 // 5. 투입 금액에서 음료 값을 빼고, 반영합니다.
                 amount -= beverageArr[idx].price;
+				
                 $("#amount").val(amount);             
-            }        	
-        	        	
-        	// 금액 투입 함수.
+            }
+			
+			// 추가기능 : '미리내', '받기' 버튼 입니다.
+			// '미리내' 기능은 음료수를 금액 투입 후, 음료를 바로 뽑지 않고, 
+			// 누군가 뽑아서 마실 수 있도록 미리 값을 지불하는 기능입니다.
+			// 재고에 영향을 받지 않고 미리 낼 수 있습니다.
+			// '받기' 로 금액 투입 없이 받을 수 있으며, 재고는 이 때 감소합니다.
+			// 재고가 소진되면, 음료를 받을 수 없지만, 새로고침 전까지 기억하여,
+			// 음료가 입고되면 계속 사용할 수 있게 합니다.
+			// 재고 표시는 (실재고 / 미리내 수)로 표시합니다. 
+			function mirinaeBeverage(idx) {
+				
+				// 1. 투입 금액이 선택한 음료를 구입 하기에 충분한지 확인 합니다.
+                amount = $("#amount").val();
+                
+                if (beverageArr[idx].price > amount) {
+                    showMessage("투입 금액이 부족합니다.");
+                    return;                    
+                }                                
+                   
+                // 2. 해당 음료의 미리내 개수를 하나 증가시키고, 메시지를 보여 줍니다.
+                beverageArr[idx].mirinae++;
+				showMessage(beverageArr[idx].name + " 을(를) 미리냈습니다~♡");
+				
+				// 3. 해당 음료의 재고가 0이 아니라면, [받기] 버튼을 활성화 합니다.
+				if (beverageArr[idx].stock > 0) {
+					$("div[name=item\\[\\]]").eq(beverageArr[idx].didx).children("#take").removeAttr("disabled");	
+				}
+				
+				// 4, 현재 객체가 표시되고 있는 div 안 span에 변경된 미리내 수를 반영합니다.
+                $("div[name=item\\[\\]]").eq(beverageArr[idx].didx).children("#beverageMirinae").text(beverageArr[idx].mirinae);
+                
+                // 5. 투입 금액에서 음료 값을 빼고, 반영합니다.
+                amount -= beverageArr[idx].price;
+                $("#amount").val(amount);  
+				        	
+			}
+			
+			// 추가기능 : 미리내 준 음료를 받아갑니다.
+			function takeBeverage(idx) {
+					
+			 	// 1. 재고가 있는지 확인합니다.
+                if (beverageArr[idx].stock > 0) {
+                    
+                    // 2. 해당 음료의 미리내 수, 재고를 감소시키고, 메시지를 보여 줍니다.
+                	beverageArr[idx].mirinae--;
+					beverageArr[idx].stock--;
+					showMessage(beverageArr[idx].name + " (이)가 나왔습니다~♡");
+					
+					// 2-1. 재고가 0이 되면 '선택', '받기' 버튼을 비활성화 합니다.
+					if (beverageArr[idx].stock == 0) {	
+						// 현재 객체가 표시되고 있는 div 안 버튼에 disabled 속성을 추가합니다.
+						// 비활성화된 버튼은 이벤트를 받을 수 없습니다.
+						$("div[name=item\\[\\]]").eq(beverageArr[idx].didx).children("#select").attr("disabled","");
+						
+						// 추가기능 : 재고가 없으면, 미리 값을 지불하였어도, 받을 수 없으므로 [받기] 버튼도 비활성화합니다.
+						$("div[name=item\\[\\]]").eq(beverageArr[idx].didx).children("#take").attr("disabled","");
+					}
+					// 2-2. 미리내 수가 0이 되면 [선택] 버튼을 비활성화 합니다.
+					if (beverageArr[idx].mirinae == 0) {
+						$("div[name=item\\[\\]]").eq(beverageArr[idx].didx).children("#take").attr("disabled","");
+					}
+                }
+								
+				// 3. 변경된 재고와 미리내 수를 반영합니다.
+				$("div[name=item\\[\\]]").eq(beverageArr[idx].didx).children("#beverageStock").text(beverageArr[idx].stock);
+				$("div[name=item\\[\\]]").eq(beverageArr[idx].didx).children("#beverageMirinae").text(beverageArr[idx].mirinae);
+			}
+			
+			// 추가기능 : 재고 추가를 위한 테이블을 보여줍니다. 
+			function showStockTable() {
+				
+				var makeTable = "<tr><th>상품명</th><th>재고</th><th>입고</th></tr>";
+				
+				for (var i in beverageArr) {
+					
+					makeTable += "<tr>";
+					makeTable += "<td>" + beverageArr[i].name + "</td>";
+					makeTable += "<td>" + beverageArr[i].stock + "</td>";
+					makeTable += "<td><input type='text' name='addStockCount[]' size='3' value='" + (10-beverageArr[i].stock) + "' style='text-align: right' /></td>";
+					makeTable += "</tr>";
+				
+				}
+				
+				makeTable += "<tr><td colspan='3' align='right'><input type='button' id='addStock' name='addStock' value='입고' onclick='javascript:checkAddStock()' /></td></tr>";
+				
+				$("#beverageStockList").html(makeTable);
+				
+				$("#stock_wrap").show();
+			}
+			
+			// 추가기능 : 입고, [입고] 버튼을 누르면 테이블이 표시되며, 
+			// 입고 항목에는 최초 재고인 10을 기준으로 입고 가능한 수를 표시하며,
+			// 10을 초과하면 경고 메시지를 출력한 후, 다시 입력하도록 합니다.
+			function checkAddStock() {
+				
+				var addStockCountArr = new Array();
+				
+				// 1. 현재 재고 수 + 입고될 수가 10을 초과하는지 체크합니다. 	
+				for (var i in beverageArr) {
+				
+					addStockCountArr[i] = $("input[name=addStockCount\\[\\]]").eq(i);
+				
+					if (beverageArr[i].stock + parseInt(addStockCountArr[i].val()) > 10) {
+						alert(beverageArr[i].name + ' 의 총 재고가 10을 초과하였습니다.');
+						addStockCountArr[i].focus();
+						return;
+					}					
+				}
+				
+				for (var i in beverageArr) {
+					
+					// 2. 입력된 입고 수를 실제 객체에 더합니다.								
+					beverageArr[i].stock += parseInt(addStockCountArr[i].val());
+					
+					// 3. 재고가 있으면, [선택] 버튼을 활성화 합니다.
+					if (beverageArr[i].stock > 0) {
+						$("div[name=item\\[\\]]").eq(beverageArr[i].didx).children("#select").removeAttr("disabled");
+					}
+					
+					// 4. 미리내가 있으면, [받기] 버튼을 활성화 합니다.
+					if (beverageArr[i].mirinae > 0) {
+						$("div[name=item\\[\\]]").eq(beverageArr[i].didx).children("#take").removeAttr("disabled");
+					}										
+					
+					// 5. 변경된 재고를 반영합니다.
+					$("div[name=item\\[\\]]").eq(beverageArr[i].didx).children("#beverageStock").text(beverageArr[i].stock);
+					
+				}
+				
+				$('#stock_wrap').hide();							
+			}
+			
+        	// 금액 투입 함수입니다.
 			function insertAmount(amount) {
 				
 				// 1000원, 500원의 투입 가능 개수를 초과하면 투입을 막습니다.
@@ -117,9 +257,9 @@
 						if (onethousand_count < 0)  {
 							showMessage("1000원은 3장까지 투입 가능합니다.");
 							return;
-						}
-						
+						}						
 						break;
+						
 					case 500:
 						fivehundred_count--;
 						
@@ -138,15 +278,24 @@
 				
 				// 계산 결과를 텍스트 상자에 반영 합니다.
 				$("#amount").val(currentAmount);			
-			}
+			}	
 			
-			// 메세지를 넘겨 받아, 보여 주는 함수 입니다.
+			// 추가기능 : 금액 반환. 투입 금액을 반환합니다.(0 으로 초기화.)
+			function refundAmount(amount) {
+				if (amount > 0) {
+					$("#amount").val(0);
+					showMessage(amount + " 원이 반환되었습니다.");
+				}
+			}			
+						
+			// 메시지를 넘겨 받아, 보여 주는 함수 입니다.
 			function showMessage(message) {
 				$("#message").text(message);
-			}
+			}			
 		</script>
 	</head>
 	<body>
+    	<div id="stock_wrap"><table id="beverageStockList" border="1"></table></div>
     	<div id="main_wrap">
             <div id="beverage_wrap"></div>
             <div id="manage_wrap">
@@ -171,14 +320,14 @@
                         </tr>
                         <tr>
                         	<td>
-                            	<input type="button" id="refund" name="refund" value="반환" onclick="javascript:refundAmount();"  />
-                    			<input type="button" id="donate" name="donate" value="기부" onclick="javascript:donateAmount();"  />
+                            	<input type="button" id="refund" name="refund" value="반환" onclick="javascript:refundAmount($('#amount').val());"  />
+                    			<img src="images/hancom.gif" />
                 			</td>
                         </tr>
                 	</table>
                 </div>            
                 <div id="message_wrap">
-                	<span id="message">메세지가 표시됩니다.</span>
+                	<span id="message">메시지가 표시됩니다.</span>
                 </div>
                 <div id="profile_wrap">
                  	<table>
@@ -193,7 +342,7 @@
                     	</tr>
                         <tr>
                         	<td colspan="3" align="right">
-                            	<input type="button" id="manager" name="manager" value="관리자" />
+                            	<input type="button" id="manager" name="manager" value="입고" onclick="javascript:showStockTable();" />
                             </td>
                      	</tr>
                 	</table>
